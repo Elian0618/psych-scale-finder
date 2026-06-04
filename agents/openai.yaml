@@ -1,0 +1,7 @@
+interface:
+  display_name: "Psych Scale Finder"
+  short_description: "Trace psychology scales from theses and originals"
+  brand_color: "#1769AA"
+  default_prompt: "Use $psych-scale-finder to trace this psychology scale, find Chinese thesis appendix evidence first, and extract items with source and confidence."
+policy:
+  allow_implicit_invocation: true
