@@ -5,6 +5,8 @@
 ![Python](https://img.shields.io/badge/scripts-Python%20%7C%20JavaScript-green)
 ![Status](https://img.shields.io/badge/status-research--assistant-orange)
 
+![Psych Scale Finder Overview](assets/psych-scale-finder-overview.png)
+
 > **权限声明：** 本项目是一个本地 Codex skill，不提供知网账号、不绕过登录、不破解验证码、不代替机构授权。使用者需要自行拥有 CNKI/学校/机构访问权限。所有检索、下载和抽取动作都应在用户授权的浏览器会话或用户提供的本地文件中完成。
 
 > **使用声明：** 本 skill 的目标是帮助研究者追踪心理量表来源、定位硕博论文附录、核对维度与计分方式。正式用于论文、问卷施测或发表前，请回到原始文献、中文修订文献或授权版本再次核验。
@@ -22,6 +24,7 @@
 - **痛点一：量表名字混乱。** 同一个量表可能有中文名、英文名、缩写、旧译名、修订版、简版，搜错一个词就漏掉关键来源。
 - **痛点二：题项藏在硕博论文附录里。** 正文只写“采用某某量表”，真正题项在附录，附录又可能是 PDF、CAJ 或图片页。
 - **痛点三：二手转载不可靠。** 量表网站、论坛、文档转载常常缺少原始出处、维度、反向题、计分方式，甚至混入改写题项。
+- **痛点四：知网流程容易断。** 登录、验证码、机构权限、下载链接、CAJ 转 PDF、PDF 抽取，每一步都可能卡住。
 
 别急！您的专属心理量表追踪器 `Psych Scale Finder` 已就位。
 
@@ -39,19 +42,23 @@
 
 ## 安装方式
 
-把本仓库复制到 Codex skills 目录：
+推荐使用一键安装脚本。它会同时安装：
+
+- `psych-scale-finder`
+- 依赖的 `cnki-*` 系列 skills
+- `chrome-devtools` MCP 配置
 
 ```bash
 git clone https://github.com/Elian0618/psych-scale-finder.git
-mkdir -p ~/.codex/skills
-cp -R psych-scale-finder ~/.codex/skills/psych-scale-finder
+cd psych-scale-finder
+bash install.sh
 ```
 
-然后重启 Codex，或新开一个线程，让 skill 列表刷新。
+然后重启 Codex，或新开一个线程，让 skill 和 MCP 配置刷新。
+
+> 注意：安装脚本只负责配置工具链，不提供 CNKI 账号或机构权限。CNKI 登录、学校图书馆认证和验证码仍需用户本人在 Chrome 中完成。
 
 ## 使用示例
-
-复制下面任意一句给 Codex：
 
 ```text
 [$psych-scale-finder] 帮我找职业紧张感量表（22题版）
@@ -62,48 +69,19 @@ cp -R psych-scale-finder ~/.codex/skills/psych-scale-finder
 ```
 
 ```text
-[$psych-scale-finder] 帮我核对这个量表的题项、维度、反向题和计分方式是否可靠。
+[$psych-scale-finder] 我有一篇硕士论文 PDF，帮我检查附录里有没有完整问卷题项。
 ```
 
 ## 仓库内容
 
 ```text
-psych-scale-finder/
-├── SKILL.md
-├── README.md
-├── agents/
-│   └── openai.yaml
-└── scripts/
-    ├── expand_scale_queries.py
-    ├── extract_scale_sections.py
-    ├── cnki_download_audit.js
-    ├── caj_to_pdf.py
-    └── render_pdf_pages.py
-```
-
-文件说明：
-
-```text
-SKILL.md
-  skill 主说明与完整工作流。
-
-agents/openai.yaml
-  Codex/OpenAI agent metadata。
-
-scripts/expand_scale_queries.py
-  生成中文、英文、缩写、附录关键词等检索式。
-
-scripts/extract_scale_sections.py
-  从 PDF 或文本中定位可能包含量表的段落。
-
-scripts/cnki_download_audit.js
-  审计 CNKI 详情页下载链接类型。
-
-scripts/caj_to_pdf.py
-  将本地 CAJ 文件转换为 PDF 的辅助脚本。
-
-scripts/render_pdf_pages.py
-  将 PDF 页面渲染为图片，用于视觉检查或 OCR 辅助。
+SKILL.md                         # skill 主说明与工作流
+agents/openai.yaml               # Codex/OpenAI agent metadata
+scripts/expand_scale_queries.py  # 生成中英文检索式
+scripts/extract_scale_sections.py# 从 PDF/文本中定位量表段落
+scripts/cnki_download_audit.js   # 审计 CNKI 下载链接类型
+scripts/caj_to_pdf.py            # CAJ 转 PDF 辅助脚本
+scripts/render_pdf_pages.py      # PDF 页面渲染/OCR 辅助脚本
 ```
 
 ## 重要边界
