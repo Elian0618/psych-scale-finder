@@ -1,11 +1,11 @@
-# Psych Scale Finder【心理量表追踪器】
+# Codex Skill：Psych Scale Finder【心理量表追踪器】
 
 ![Codex Skill](https://img.shields.io/badge/Codex-Skill-blue)
 ![CNKI First](https://img.shields.io/badge/workflow-CNKI--first-1769AA)
 ![Python](https://img.shields.io/badge/scripts-Python%20%7C%20JavaScript-green)
 ![Status](https://img.shields.io/badge/status-research--assistant-orange)
 
-> **权限声明：** 本项目是一个本地 skill，不提供知网账号、不绕过登录、不破解验证码、不代替机构授权。使用者需要自行拥有 CNKI/学校/机构访问权限。所有检索、下载和抽取动作都应在用户授权的浏览器会话或用户提供的本地文件中完成。
+> **权限声明：** 本项目是一个本地 Codex skill，不提供知网账号、不绕过登录、不破解验证码、不代替机构授权。使用者需要自行拥有 CNKI/学校/机构访问权限。所有检索、下载和抽取动作都应在用户授权的浏览器会话或用户提供的本地文件中完成。
 
 > **使用声明：** 本 skill 的目标是帮助研究者追踪心理量表来源、定位硕博论文附录、核对维度与计分方式。正式用于论文、问卷施测或发表前，请回到原始文献、中文修订文献或授权版本再次核验。
 
@@ -46,3 +46,69 @@
 git clone https://github.com/Elian0618/psych-scale-finder.git
 mkdir -p ~/.codex/skills
 cp -R psych-scale-finder ~/.codex/skills/psych-scale-finder
+```
+
+然后重启 Codex，或新开一个线程，让 skill 列表刷新。
+
+## 使用示例
+
+复制下面任意一句给 Codex：
+
+```text
+[$psych-scale-finder] 帮我找职业紧张感量表（22题版）
+```
+
+```text
+[$psych-scale-finder] 找一下中文版心理资本量表，最好有题项、维度和计分方式。
+```
+
+```text
+[$psych-scale-finder] 帮我核对这个量表的题项、维度、反向题和计分方式是否可靠。
+```
+
+## 仓库内容
+
+```text
+psych-scale-finder/
+├── SKILL.md
+├── README.md
+├── agents/
+│   └── openai.yaml
+└── scripts/
+    ├── expand_scale_queries.py
+    ├── extract_scale_sections.py
+    ├── cnki_download_audit.js
+    ├── caj_to_pdf.py
+    └── render_pdf_pages.py
+```
+
+文件说明：
+
+```text
+SKILL.md
+  skill 主说明与完整工作流。
+
+agents/openai.yaml
+  Codex/OpenAI agent metadata。
+
+scripts/expand_scale_queries.py
+  生成中文、英文、缩写、附录关键词等检索式。
+
+scripts/extract_scale_sections.py
+  从 PDF 或文本中定位可能包含量表的段落。
+
+scripts/cnki_download_audit.js
+  审计 CNKI 详情页下载链接类型。
+
+scripts/caj_to_pdf.py
+  将本地 CAJ 文件转换为 PDF 的辅助脚本。
+
+scripts/render_pdf_pages.py
+  将 PDF 页面渲染为图片，用于视觉检查或 OCR 辅助。
+```
+
+## 重要边界
+
+本 skill 不会绕过付费墙、登录墙、机构权限或验证码。CNKI 登录、学校图书馆认证和验证码处理都必须由用户本人完成。
+
+如果 CNKI 无法使用，skill 会明确报告卡点，例如：`cnki_login_needed`、`cnki_captcha`、`cnki_tool_blocked` 或 `cnki_access_blocked`，而不会把普通网页搜索伪装成“已经查过知网”。
