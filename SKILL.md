@@ -1,17 +1,18 @@
 ---
 name: psych-scale-finder
-description: "Locate, verify, and extract psychology scale items using a CNKI-first workflow: source articles, Chinese thesis/dissertation appendices, specialized scale sites, then foreign databases. Use when users ask for psychological questionnaires, scales, measures, items, dimensions, scoring, Chinese versions, appendix extraction, or source tracing."
+description: "Locate, verify, and extract psychology scale items using a CNKI-first citation-chain workflow: authoritative Chinese source/revision papers first, their citing theses/dissertation appendices second, then specialized scale sites and foreign databases. Use when users ask for psychological questionnaires, scales, measures, items, dimensions, scoring, Chinese versions, appendix extraction, or source tracing."
 ---
 
 # Psychological Scale Finder
 
-Use this skill to trace psychology scales with a practical researcher workflow: CNKI source-paper search first, CNKI thesis appendix search second, specialized Chinese scale sites third, and foreign databases/open sources when domestic evidence is unavailable. The goal is not just to find items, but to produce a source-grounded, permission-aware extraction that a researcher can verify.
+Use this skill to trace psychology scales with a practical researcher workflow: CNKI authoritative Chinese source/revision paper search first, CNKI citing-thesis appendix search second, specialized Chinese scale sites third, and foreign databases/open sources when domestic evidence is unavailable. The goal is not just to find items, but to produce a source-grounded, permission-aware extraction that a researcher can verify.
 
 ## Operating Rules
 
 - Prefer primary or traceable sources: thesis appendix with page number, original article/manual, official repository, or author page.
 - Do not bypass paywalls, login walls, or institutional access. If a source is inaccessible, report the access limit and ask for a PDF or accessible link.
 - Because CNKI thesis appendices are often the most direct route to Chinese scale items, perform a CNKI access preflight before substantive scale searching. Do not skip CNKI silently.
+- Do not start by broadly collecting random theses. First try to identify an authoritative Chinese source/revision/validation paper for the scale. If such an anchor paper exists, use its CNKI citing literature (`引证文献`) to find theses/dissertations that cite the anchor and are likely to include the scale appendix.
 - When CNKI skills are installed and the `chrome-devtools` MCP tools are available, use the CNKI skills for live CNKI search/detail/download work before falling back to generic web search.
 - CNKI login, institutional access, and Tencent slider captchas must be handled manually by the user in Chrome. At the start of the task, ask the user to confirm they want Codex to use their CNKI/institutional access, then verify whether the session is logged in. Pause and ask the user to complete login/captcha when needed; do not attempt to bypass access controls.
 - Do not preemptively stop because a scale may be copyrighted. First try to locate and verify the item source. Distinguish three things clearly: (1) internal inspection of a user-authorized/user-provided source, (2) source/page/appendix location, and (3) verbatim reproduction in the chat. Provide verbatim item text only when allowed by the source, user-provided/access-authorized context, and applicable content-sharing constraints; otherwise provide exact location, item numbers, dimensions, scoring, reverse coding, and short compliant excerpts where useful.
@@ -78,10 +79,11 @@ CNKI evidence to capture for every candidate:
    - Run `python3 scripts/expand_scale_queries.py "scale name"` when useful.
    - Keep Chinese and English names, abbreviations, construct names, author names, and likely translation variants.
 
-3. **CNKI source-paper search**
+3. **CNKI authoritative Chinese anchor-paper search**
    - Use `cnki-search` for broad search and `cnki-advanced-search` for filtered source-paper search when available.
-   - In CNKI, use **主题** search with the scale name or variable name.
-   - Prioritize journals and dissertations with high citation counts, especially titles like:
+   - In CNKI, use **主题** search with the scale name, construct name, English abbreviation, original author, and likely Chinese variants.
+   - Prefer source categories and venues that make a paper a credible Chinese anchor: CSSCI, 北大核心, CSCD, recognized psychology/medicine/management journals, and high-citation validation/revision papers.
+   - Prioritize titles like:
      - `XXX的编制`
      - `XXX量表的编制`
      - `XXX的汉化`
@@ -90,13 +92,27 @@ CNKI evidence to capture for every candidate:
      - `XXX量表的修订`
    - Use `cnki-navigate-pages` to sort by citations/downloads when useful.
    - Use `cnki-paper-detail` on high-probability source papers to extract metadata, abstract, keywords, source, and citation clues.
-   - Treat likely source papers as metadata anchors. Extract scale name, author/year, dimensions, item count, scoring, reliability/validity, and references.
+   - Treat a paper as an **anchor paper** only when it plausibly defines, translates, revises, or validates the Chinese version of the target scale. Extract scale name, author/year, dimensions, item count, scoring, reliability/validity, sample, original reference chain, citation/download counts, and CNKI detail URL.
+   - If multiple anchor candidates exist, rank them by:
+     1. direct title match to compilation/revision/Chinese version/validity;
+     2. authoritative journal/source category;
+     3. citation count and downstream use;
+     4. completeness of dimensions, item count, scoring, and original reference chain.
+   - If no credible authoritative anchor paper is found, say so explicitly, then fall back to direct thesis appendix search in Step 4B.
 
-4. **CNKI thesis/dissertation appendix search**
-   - Use `cnki-search` or `cnki-advanced-search` with combinations such as `量表名 附录`, `量表名 调查问卷`, `变量名 量表 学位论文`, `变量名 问卷 附录`.
+4. **CNKI citation-chain thesis/dissertation appendix search**
+   - **Preferred route when an anchor paper exists:** open the anchor paper's CNKI detail/citation network and inspect `引证文献` / citing literature.
+   - In the citing-literature list, prioritize source type **学位论文** and then titles/abstracts containing `附录`, `调查问卷`, `问卷`, `量表`, `研究工具`, `测量工具`, or the target scale/construct name.
+   - Sort citing literature by relevance, citations, or downloads when useful. The best candidates are theses/dissertations that cite the anchor paper and use the same construct in empirical research.
+   - Use `cnki-paper-detail` to inspect candidate citing theses. Capture the anchor-paper relationship: anchor title, anchor CNKI URL, citing thesis title, result rank, source type, citation/download counts, and why the thesis is likely to contain an appendix.
+   - Use `cnki-download` only after the user is logged in and has download permission. Download the full thesis before extraction whenever possible.
+   - If CNKI citation-network navigation is unavailable in the current toolset, use a fallback query strategy based on the anchor paper:
+     - exact anchor title + `学位论文`
+     - exact anchor title + `附录`
+     - anchor author + scale name + `调查问卷`
+     - scale name + anchor author/year + `硕士论文` / `博士论文`
+   - **4B fallback when no anchor paper exists or citation route fails:** use direct thesis searches such as `量表名 附录`, `量表名 调查问卷`, `变量名 量表 学位论文`, `变量名 问卷 附录`. Mark this route as lower confidence than the anchor-citation route.
    - If the live CNKI interface supports it, use **高级检索 -> 句子检索** and limit document type to **学位论文**. If the installed `cnki-advanced-search` skill cannot set these exact controls, search with explicit keywords (`学位论文`, `硕士论文`, `博士论文`, `附录`, `调查问卷`) and filter candidates by source type in the result list.
-   - Use `cnki-paper-detail` to inspect candidate thesis metadata and abstracts.
-   - Use `cnki-download` only after the user is logged in and has download permission.
 
 5. **Download-first local extraction**
    - Attempt local full-text download before any reader-based extraction.
@@ -153,9 +169,10 @@ CNKI evidence to capture for every candidate:
 
 9. **Collect candidate sources**
    - Record title, author, year, institution/journal, URL/DOI, access status, and why it likely contains the scale.
-   - For CNKI candidates, record the CNKI skill used, query/filter, result rank, detail URL, and download status.
+   - For CNKI anchor papers, record source category/journal authority, query/filter, result rank, citation/download counts, detail URL, and why it qualifies or does not qualify as an anchor.
+   - For CNKI citing theses, record the anchor paper they cite, citation-network route or fallback query, result rank, detail URL, and download status.
    - Prefer downloadable PDFs or HTML with visible appendix text.
-   - If multiple theses contain the same scale, compare wording and citations instead of trusting the first hit.
+   - If multiple citing theses contain the same scale, compare wording and citations instead of trusting the first hit.
 
 10. **Extract candidate appendix sections**
    - For local PDFs or text files, run:
@@ -210,16 +227,18 @@ Include response anchors, reverse-coded items, deleted items, whether higher sco
 ## 3. 数据来源
 
 1. 官方源/原始源头：...
-2. 中文编制/汉化/修订/信效度来源：...
-3. 硕博论文附录来源：...
+2. 国内权威期刊锚点论文（编制/汉化/修订/信效度）：...
+3. 锚点论文的引证硕博论文附录来源：...
 4. 量表网站/其他线索：...
 
-For each source, include title, author, year, journal/institution, page or appendix when available, URL/DOI/access status, and why it is useful. Keep the source chain explicit: thesis appendix -> cited Chinese adaptation -> original scale.
+For each source, include title, author, year, journal/institution, page or appendix when available, URL/DOI/access status, and why it is useful. Keep the source chain explicit: citing thesis appendix -> authoritative Chinese anchor paper -> original scale.
 
 For CNKI sources, also include:
 - CNKI skill used (`cnki-search`, `cnki-advanced-search`, `cnki-paper-detail`, `cnki-download`, etc.).
 - CNKI preflight status (`cnki_ready`, `cnki_login_needed`, `cnki_captcha`, `cnki_tool_blocked`, or `cnki_access_blocked`).
 - Search query/filter/sort order.
+- Anchor-paper route: whether a credible authoritative journal source/revision paper was found; if yes, list title, journal/source category, citation/download counts, CNKI URL, and anchor qualification reason.
+- Citing-thesis route: whether thesis candidates came from the anchor paper's `引证文献`; if yes, list anchor -> citing thesis chain and result rank.
 - Result rank and citation/download counts when visible.
 - Detail URL and download/open status.
 - Local file path if a PDF/CAJ was downloaded or provided by the user.
@@ -228,7 +247,7 @@ For CNKI sources, also include:
 
 - 验证等级：A / B / C / D
 - 是否看到题项原文：是/否；位置：...
-- 源头链是否闭合：是/否；链条：附录/网页 -> 中文修订/引用文献 -> 原始文献
+- 源头链是否闭合：是/否；链条：引证硕博论文附录 -> 国内权威期刊锚点论文 -> 原始文献
 - 关键一致性：题量、维度、计分、反向题、适用对象是否与源头一致
 - 交叉印证：至少 1 个独立来源是否一致
 - 风险提示：节选版/改写版/翻译差异/来源不可访问/版权量表/低可信转载
