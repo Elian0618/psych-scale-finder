@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/scripts-Python%20%7C%20JavaScript-green)
 ![Status](https://img.shields.io/badge/status-research--assistant-orange)
 
-![Psych Scale Finder Overview](assets/psych-scale-finder-overview.png)
+![Uploading ChatGPT Image 2026年6月5日 11_24_08.png…]()
 
 > **权限声明：** 本项目是一个本地 AI agent skill，不提供知网账号、不绕过登录、不破解验证码、不代替机构授权。使用者需要自行拥有 CNKI/学校/机构访问权限。所有检索、下载和抽取动作都应在用户授权的浏览器会话或用户提供的本地文件中完成。
 
@@ -26,7 +26,6 @@
 - **痛点一：量表名字混乱。** 同一个量表可能有中文名、英文名、缩写、旧译名、修订版、简版，搜错一个词就漏掉关键来源。
 - **痛点二：题项藏在硕博论文附录里。** 正文只写“采用某某量表”，真正题项在附录，附录又可能是 PDF、CAJ 或图片页。
 - **痛点三：二手转载不可靠。** 量表网站、论坛、文档转载常常缺少原始出处、维度、反向题、计分方式，甚至混入改写题项。
-- **痛点四：知网流程容易断。** 登录、验证码、机构权限、下载链接、CAJ 转 PDF、PDF 抽取，每一步都可能卡住。
 
 别急！您的专属心理量表追踪器 `Psych Scale Finder` 已就位。
 
