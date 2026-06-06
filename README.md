@@ -101,14 +101,6 @@ Always report CNKI access status and source-chain confidence.
 ```
 
 ```text
-使用 psych-scale-finder，帮我追溯某个心理量表的中文修订来源和硕博论文附录证据。
-```
-
-```text
-使用 psych-scale-finder，我有一篇硕士论文 PDF，帮我检查附录里有没有完整问卷题项。
-```
-
-```text
 使用 psych-scale-finder，帮我核对这个量表的题项、维度、反向题和计分方式是否可靠。
 ```
 
