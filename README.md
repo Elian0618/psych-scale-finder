@@ -1,11 +1,11 @@
-# Codex Skill：Psych Scale Finder【心理量表追踪器】
+# Psych Scale Finder【心理量表追踪器】
 
 ![Codex Skill](https://img.shields.io/badge/Codex-Skill-blue)
 ![CNKI First](https://img.shields.io/badge/workflow-CNKI--first-1769AA)
 ![Python](https://img.shields.io/badge/scripts-Python%20%7C%20JavaScript-green)
 ![Status](https://img.shields.io/badge/status-research--assistant-orange)
 
-![Psych Scale Finder Overview](assets/psych-scale-finder-overview.png)
+<img width="1672" height="941" alt="ChatGPT Image 2026年6月5日 11_24_08" src="https://github.com/user-attachments/assets/eae8389f-7be0-4a3e-9c60-45840e878785" />
 
 > **权限声明：** 本项目是一个本地 Codex skill，不提供知网账号、不绕过登录、不破解验证码、不代替机构授权。使用者需要自行拥有 CNKI/学校/机构访问权限。所有检索、下载和抽取动作都应在用户授权的浏览器会话或用户提供的本地文件中完成。
 
