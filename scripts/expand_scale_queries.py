@@ -15,6 +15,35 @@ from collections import OrderedDict
 from urllib.parse import quote
 
 
+ALIAS_FAMILIES: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
+    (
+        ("黑暗人格", "黑暗特质", "dark personality", "dark traits"),
+        (
+            "黑暗三联征",
+            "黑暗三联征量表",
+            "黑暗十二条",
+            "Dirty Dozen",
+            "DD",
+            "短式黑暗三联征量表",
+            "Short Dark Triad",
+            "SD3",
+            "黑暗四联征",
+            "Dark Triad",
+            "Dark Tetrad",
+        ),
+    ),
+    (
+        ("光明人格", "light personality", "light triad"),
+        (
+            "光明人格量表",
+            "光明三联征",
+            "Light Triad Scale",
+            "LTS",
+        ),
+    ),
+]
+
+
 def unique(items: list[str]) -> list[str]:
     seen: OrderedDict[str, None] = OrderedDict()
     for item in items:
@@ -24,9 +53,19 @@ def unique(items: list[str]) -> list[str]:
     return list(seen.keys())
 
 
+def alias_variants(name: str) -> list[str]:
+    lowered = name.lower()
+    aliases: list[str] = []
+    for triggers, family_aliases in ALIAS_FAMILIES:
+        if any(trigger.lower() in lowered for trigger in triggers):
+            aliases.extend(family_aliases)
+    return aliases
+
+
 def variants(name: str) -> list[str]:
     base = name.strip()
     parts = [base]
+    parts.extend(alias_variants(base))
 
     for text in re.findall(r"[（(]([^）)]+)[）)]", base):
         parts.append(text.strip())
@@ -141,6 +180,7 @@ def build_queries(name: str, construct: str = "", author: str = "") -> dict[str,
             domestic.append(f"{author} {construct} 问卷")
 
     primary_keyword = names[0] if names else name
+    priority_names = unique([primary_keyword, *alias_variants(name)])[:8]
     specialized_sites = [
         f"心理学网站内搜索: {primary_keyword}",
         f"site:xinlixue.cn {primary_keyword} 量表",
@@ -161,13 +201,17 @@ def build_queries(name: str, construct: str = "", author: str = "") -> dict[str,
             ]
         )
 
-    source_focus_terms = [
-        f"{primary_keyword} 编制",
-        f"{primary_keyword} 汉化",
-        f"{primary_keyword} 中文版",
-        f"{primary_keyword} 信效度检验",
-        f"{primary_keyword} 修订",
-    ]
+    source_focus_terms = []
+    for seed in priority_names[:4]:
+        source_focus_terms.extend(
+            [
+                f"{seed} 编制",
+                f"{seed} 汉化",
+                f"{seed} 中文版",
+                f"{seed} 信效度检验",
+                f"{seed} 修订",
+            ]
+        )
     if construct and construct != primary_keyword:
         source_focus_terms.extend(
             [
@@ -176,12 +220,16 @@ def build_queries(name: str, construct: str = "", author: str = "") -> dict[str,
             ]
         )
 
-    thesis_focus_terms = [
-        f"{primary_keyword} 附录",
-        f"{primary_keyword} 调查问卷",
-        f"{primary_keyword} 量表 学位论文",
-        f"{primary_keyword} 问卷 附录",
-    ]
+    thesis_focus_terms = []
+    for seed in priority_names[:4]:
+        thesis_focus_terms.extend(
+            [
+                f"{seed} 附录",
+                f"{seed} 调查问卷",
+                f"{seed} 量表 学位论文",
+                f"{seed} 问卷 附录",
+            ]
+        )
     if construct and construct != primary_keyword:
         thesis_focus_terms.extend(
             [
@@ -190,21 +238,21 @@ def build_queries(name: str, construct: str = "", author: str = "") -> dict[str,
             ]
         )
 
-    cnki_skill_commands = [
-        f"cnki-search: {primary_keyword}",
-        f"cnki-search: {' OR '.join(source_focus_terms[:5])}",
-        f"cnki-advanced-search: 主题={primary_keyword}; 来源类别=CSSCI/北大核心/CSCD; 按被引排序; 目标=源头文/汉化/信效度",
-        f"cnki-search: {' OR '.join(thesis_focus_terms[:4])}",
-        "cnki-navigate-pages: sort by citations 或 sort by downloads，用于筛选高引用源头文/常用硕博论文",
-        "cnki-paper-detail: 对候选源头文、中文修订文、硕博论文逐篇抽取题名、作者、摘要、关键词、来源、参考线索",
-        "mcp__chrome-devtools__evaluate_script: 在详情页运行 scripts/cnki_download_audit.js，先判断 direct_pdf / full_caj_only / page_caj_only",
-        "cnki-download: 仅在用户已登录且有权限时下载候选硕博论文 PDF/CAJ，用于检查研究工具和附录",
+    cnki_fast_path_commands = [
+        *(f"embedded-cnki-search: {seed}" for seed in priority_names[:4]),
+        f"embedded-cnki-search: {' OR '.join(source_focus_terms[:8])}",
+        "optional-installed-cnki-advanced-search: 有 cnki-advanced-search 时再做 CSSCI/北大核心/CSCD 过滤；没有时用 embedded-cnki-search 多查询替代",
+        f"embedded-cnki-search: {' OR '.join(thesis_focus_terms[:8])}",
+        "optional-installed-cnki-navigate-pages: 有 cnki-navigate-pages 时按被引/下载排序；没有时先用第一页可见被引/下载数筛选",
+        "embedded-cnki-detail: 对候选源头文、中文修订文、硕博论文逐篇抽取题名、作者、摘要、关键词、来源、参考线索",
+        "mcp__chrome_devtools__evaluate_script: 在详情页运行 scripts/cnki_download_audit.js，先判断 direct_pdf / full_caj_only / page_caj_only / chapter_caj_only / online_read_only",
+        "embedded-cnki-download: 仅在用户已登录且有权限时下载候选硕博论文 PDF/CAJ，用于检查研究工具和附录",
         "local-script: python3 scripts/caj_to_pdf.py path/to/paper.caj --output path/to/paper.pdf --setup",
         "local-script: python3 scripts/render_pdf_pages.py path/to/paper.pdf --pages 1-5 --output-dir rendered-pages --setup --deps-dir .psych-scale-finder-cache/pdf-render-deps",
     ]
 
     return {
-        "cnki_skill_commands": unique(cnki_skill_commands),
+        "cnki_fast_path_commands": unique(cnki_fast_path_commands),
         "cnki_topic_source_queries": unique(cnki_source),
         "cnki_sentence_thesis_queries": unique(cnki_sentence),
         "cnki_thesis_reading_targets": [
